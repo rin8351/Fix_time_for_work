@@ -1,0 +1,49 @@
+# styles.qss
+
+/* Основные стили для окна */
+QWidget {
+    background-color: #d3d3d3; /* По умолчанию серый фон */
+    font-size: 14px;
+}
+
+/* Стили для состояний приложения */
+QWidget[mode="work"] {
+    background-color: #a3e4a3; /* Зеленый фон для работы */
+}
+QWidget[mode="rest"] {
+    background-color: #f5b7b1; /* Красный фон для отдыха */
+}
+QWidget[mode="inactive"] {
+    background-color: #d3d3d3; /* Серый фон для неактивного дня */
+}
+
+/* Кнопки */
+QPushButton {
+    font-size: 16px;
+    padding: 8px;
+    border-radius: 5px;
+    background-color: #ffffff;
+}
+QPushButton:hover {
+    background-color: #eeeeee;
+}
+QPushButton:pressed {
+    background-color: #cccccc;
+}
+
+/* Специфические кнопки */
+QPushButton#day_button {
+    background-color: #ffcc00;
+}
+QPushButton#button[mode="work"] {
+    background-color: #2ecc71; /* Зеленая кнопка в рабочем режиме */
+}
+QPushButton#button[mode="rest"] {
+    background-color: #e74c3c; /* Красная кнопка в режиме отдыха */
+    color: white;
+}
+
+/* Стили для графиков */
+matplotlib {
+    font-size: 14px;
+}
