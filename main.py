@@ -9,20 +9,10 @@ import datetime
 
 ACTIVITY_WORK = "Work"
 ACTIVITY_REST = "Rest"
-_LEGACY_WORK = "Работа"
-_LEGACY_REST = "Отдых"
-
-
-def normalize_activity(activity):
-    if activity in (ACTIVITY_WORK, _LEGACY_WORK):
-        return ACTIVITY_WORK
-    if activity in (ACTIVITY_REST, _LEGACY_REST):
-        return ACTIVITY_REST
-    return activity
 
 
 def is_work_activity(activity):
-    return normalize_activity(activity) == ACTIVITY_WORK
+    return activity == ACTIVITY_WORK
 
 
 class TimeManager(QWidget):
@@ -240,10 +230,7 @@ class TimeManager(QWidget):
                 self.is_day_active = data.get("day_active", False)
                 self.is_working = data.get("is_working", False)
                 self.start_time = data.get("start_time", None)
-                self.sessions = [
-                    (normalize_activity(activity), start, end)
-                    for activity, start, end in data.get("sessions", [])
-                ]
+                self.sessions = data.get("sessions", [])
         except FileNotFoundError:
             self.sessions = []
             self.is_day_active = False
