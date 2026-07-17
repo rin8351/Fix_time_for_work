@@ -1,23 +1,23 @@
 # styles.qss
 
-/* Основные стили для окна */
+/* Main window styles */
 QWidget {
-    background-color: #d3d3d3; /* По умолчанию серый фон */
+    background-color: #d3d3d3; /* Default gray background */
     font-size: 14px;
 }
 
-/* Стили для состояний приложения */
+/* Application state styles */
 QWidget[mode="work"] {
-    background-color: #a3e4a3; /* Зеленый фон для работы */
+    background-color: #a3e4a3; /* Green background for work */
 }
 QWidget[mode="rest"] {
-    background-color: #f5b7b1; /* Красный фон для отдыха */
+    background-color: #f5b7b1; /* Red background for rest */
 }
 QWidget[mode="inactive"] {
-    background-color: #d3d3d3; /* Серый фон для неактивного дня */
+    background-color: #d3d3d3; /* Gray background for inactive day */
 }
 
-/* Кнопки */
+/* Buttons */
 QPushButton {
     font-size: 16px;
     padding: 8px;
@@ -31,19 +31,19 @@ QPushButton:pressed {
     background-color: #cccccc;
 }
 
-/* Специфические кнопки */
+/* Specific buttons */
 QPushButton#day_button {
     background-color: #ffcc00;
 }
 QPushButton#button[mode="work"] {
-    background-color: #2ecc71; /* Зеленая кнопка в рабочем режиме */
+    background-color: #2ecc71; /* Green button in work mode */
 }
 QPushButton#button[mode="rest"] {
-    background-color: #e74c3c; /* Красная кнопка в режиме отдыха */
+    background-color: #e74c3c; /* Red button in rest mode */
     color: white;
 }
 
-/* Стили для графиков */
+/* Chart styles */
 matplotlib {
     font-size: 14px;
 }

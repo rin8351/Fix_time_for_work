@@ -7,35 +7,53 @@ from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon
 import datetime
 
+ACTIVITY_WORK = "Work"
+ACTIVITY_REST = "Rest"
+_LEGACY_WORK = "Работа"
+_LEGACY_REST = "Отдых"
+
+
+def normalize_activity(activity):
+    if activity in (ACTIVITY_WORK, _LEGACY_WORK):
+        return ACTIVITY_WORK
+    if activity in (ACTIVITY_REST, _LEGACY_REST):
+        return ACTIVITY_REST
+    return activity
+
+
+def is_work_activity(activity):
+    return normalize_activity(activity) == ACTIVITY_WORK
+
+
 class TimeManager(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowIcon(QIcon('ico.png'))
-        # Оставляем только кнопку закрытия
-        self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)  
+        # Keep only the close button
+        self.setWindowFlags(Qt.Window | Qt.WindowCloseButtonHint)
         self.is_working = False
         self.is_day_active = False
         self.start_time = None
         self.sessions = []
-        self.is_compact = False  # Добавляем переменную для отслеживания компактного режима
+        self.is_compact = False  # Track compact mode state
         self.load_sessions()
         with open("styles.qss", "r") as file:
             self.setStyleSheet(file.read())
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_timer)
-        self.timer.start(1000)  # Обновление каждую секунду
+        self.timer.start(1000)  # Update every second
         self.timer_start = None
 
         self.initUI()
 
     def update_style(self):
         if not self.is_day_active:
-            self.setStyleSheet("background-color: #d3d3d3;")  # Серый фон
+            self.setStyleSheet("background-color: #d3d3d3;")  # Gray background
         elif self.is_working:
-            self.setStyleSheet("background-color: #f5b7b1;")  # Красный фон
+            self.setStyleSheet("background-color: #f5b7b1;")  # Red background
         else:
-            self.setStyleSheet("background-color: #a3e4a3;")  # Зеленый фон
+            self.setStyleSheet("background-color: #a3e4a3;")  # Green background
 
     def initUI(self):
         self.setWindowTitle("Time")
@@ -43,23 +61,23 @@ class TimeManager(QWidget):
 
         self.layout = QVBoxLayout()
 
-        self.label = QLabel("Нажмите 'Начать рабочий день'", self)
+        self.label = QLabel("Click 'Start working day'", self)
         self.layout.addWidget(self.label)
 
-        # Добавляем новый лейбл для счетчика
+        # Timer counter label
         self.timer_label = QLabel("00:00", self)
         self.layout.addWidget(self.timer_label)
 
-        self.day_button = QPushButton("Начать рабочий день", self)
+        self.day_button = QPushButton("Start working day", self)
         self.day_button.clicked.connect(self.toggle_workday)
         self.layout.addWidget(self.day_button)
 
-        self.button = QPushButton("Начать работу", self)
+        self.button = QPushButton("Start work", self)
         self.button.clicked.connect(self.toggle_timer)
         self.button.setVisible(False)
         self.layout.addWidget(self.button)
 
-        self.stats_button = QPushButton("Показать статистику", self)
+        self.stats_button = QPushButton("Show statistics", self)
         self.stats_button.clicked.connect(self.show_statistics)
         self.layout.addWidget(self.stats_button)
         if not self.is_day_active:
@@ -67,45 +85,45 @@ class TimeManager(QWidget):
         else:
             self.stats_button.setVisible(True)
 
-        self.on_top_button = QPushButton("Поверх всех окон", self)
+        self.on_top_button = QPushButton("Always on top", self)
         self.on_top_button.clicked.connect(self.toggle_on_top)
         self.layout.addWidget(self.on_top_button)
 
-        # Добавляем кнопку "Уменьшить"
-        self.compact_button = QPushButton("Уменьшить", self)
+        # Minimize button
+        self.compact_button = QPushButton("Minimize", self)
         self.compact_button.clicked.connect(self.toggle_compact)
         self.layout.addWidget(self.compact_button)
 
-        # Создаем элементы для компактного режима
+        # Compact mode widgets
         self.compact_layout = QVBoxLayout()
-        
-        # Верхняя строка с временем и кнопками
+
+        # Top row with timer and buttons
         self.compact_top_layout = QHBoxLayout()
-        
+
         self.compact_timer_label = QLabel("00:00", self)
         self.compact_timer_label.setAlignment(Qt.AlignCenter)
         self.compact_top_layout.addWidget(self.compact_timer_label)
-        
-        # Маленькая кнопка для смены режима (квадратик)
+
+        # Small mode toggle button (square)
         self.compact_toggle_button = QPushButton("●", self)
         self.compact_toggle_button.setFixedSize(25, 25)
         self.compact_toggle_button.clicked.connect(self.toggle_timer)
         self.compact_top_layout.addWidget(self.compact_toggle_button)
-        
-        # Маленькая кнопка для увеличения окна
+
+        # Small expand window button
         self.expand_button = QPushButton("↑", self)
         self.expand_button.setFixedSize(25, 25)
         self.expand_button.clicked.connect(self.toggle_compact)
         self.compact_top_layout.addWidget(self.expand_button)
-        
-        # Нижняя строка с активностью
-        self.compact_label = QLabel("Отдых", self)
+
+        # Bottom row with activity label
+        self.compact_label = QLabel("Rest", self)
         self.compact_label.setAlignment(Qt.AlignCenter)
-        
+
         self.compact_layout.addLayout(self.compact_top_layout)
         self.compact_layout.addWidget(self.compact_label)
-        
-        # Создаем виджет для компактного режима
+
+        # Compact mode container widget
         self.compact_widget = QWidget()
         self.compact_widget.setLayout(self.compact_layout)
         self.layout.addWidget(self.compact_widget)
@@ -116,11 +134,11 @@ class TimeManager(QWidget):
         self.restore_last_state()
 
     def toggle_compact(self):
-        """Переключение между обычным и компактным режимом"""
+        """Switch between normal and compact mode."""
         self.is_compact = not self.is_compact
-        
+
         if self.is_compact:
-            # Скрываем все элементы обычного режима
+            # Hide normal mode widgets
             self.label.setVisible(False)
             self.timer_label.setVisible(False)
             self.day_button.setVisible(False)
@@ -129,22 +147,22 @@ class TimeManager(QWidget):
             self.on_top_button.setVisible(False)
             self.compact_button.setVisible(False)
             self.compact_label.setVisible(False)
-            
-            # Показываем элементы компактного режима
+
+            # Show compact mode widgets
             self.compact_widget.setVisible(True)
-            
-            # Инициализируем компактный таймер
+
+            # Initialize compact timer
             if self.timer_start is not None and self.is_day_active:
                 elapsed = int(time.time() - self.timer_start)
                 hours = elapsed // 3600
                 minutes = (elapsed % 3600) // 60
                 time_text = f"{hours:02d}:{minutes:02d}"
                 self.compact_timer_label.setText(time_text)
-            
-            # Изменяем размер окна на минимальный
+
+            # Shrink window to minimum size
             self.setFixedSize(150, 60)
         else:
-            # Показываем все элементы обычного режима
+            # Show normal mode widgets
             self.label.setVisible(True)
             self.timer_label.setVisible(True)
             self.day_button.setVisible(True)
@@ -153,63 +171,62 @@ class TimeManager(QWidget):
             self.stats_button.setVisible(True)
             self.on_top_button.setVisible(True)
             self.compact_button.setVisible(True)
-            
-            # Скрываем элементы компактного режима
+
+            # Hide compact mode widgets
             self.compact_widget.setVisible(False)
-            
-            # Восстанавливаем обычный размер окна
+
+            # Restore normal window size
             self.setMinimumSize(200, 250)
-            self.setMaximumSize(16777215, 16777215)  # Убираем ограничения по максимальному размеру
+            self.setMaximumSize(16777215, 16777215)  # Remove max size constraints
 
     def toggle_workday(self):
         if self.is_day_active:
-            self.day_button.setText("Начать рабочий день")
-            self.label.setText("Нажмите 'Начать рабочий день'")
+            self.day_button.setText("Start working day")
+            self.label.setText("Click 'Start working day'")
             self.button.setVisible(False)
             self.stats_button.setVisible(False)
             self.is_day_active = False
             self.save_sessions(clear=True)
         else:
-            self.day_button.setText("Закончить рабочий день")
-            self.label.setText("Рабочий день начался")
+            self.day_button.setText("End working day")
+            self.label.setText("Working day started")
             self.button.setVisible(True)
             self.stats_button.setVisible(True)
             self.is_day_active = True
             self.save_sessions()
-        
-        
-        # Сбрасываем компактный таймер если день не активен
+
+        # Reset compact timer when the day is inactive
         if not self.is_day_active:
             self.compact_timer_label.setText("00:00")
-        
+
         self.update_style()
 
     def toggle_timer(self):
         current_time = time.time()
-        # Сбрасываем счетчик
+        # Reset counter
         self.timer_start = time.time()
-        
+
         if self.is_working:
-            self.sessions.append(("Работа", self.start_time, current_time))
-            self.button.setText("Начать работу")
-            self.label.setText("Режим: Отдых")
+            self.sessions.append((ACTIVITY_WORK, self.start_time, current_time))
+            self.button.setText("Start work")
+            self.label.setText("Mode: Rest")
         else:
             if self.start_time is not None:
-                self.sessions.append(("Отдых", self.start_time, current_time))
-            self.button.setText("Закончить работу")
-            self.label.setText("Режим: Работа")
+                self.sessions.append((ACTIVITY_REST, self.start_time, current_time))
+            self.button.setText("End work")
+            self.label.setText("Mode: Work")
 
         self.start_time = current_time
         self.is_working = not self.is_working
-        
-        # Сбрасываем компактный таймер при смене режима
+
+        # Reset compact timer on mode change
         self.compact_timer_label.setText("00:00")
-        
+
         self.save_sessions()
         self.update_style()
 
     def save_sessions(self, clear=False):
-        data = {"day_active": self.is_day_active, "is_working": self.is_working, 
+        data = {"day_active": self.is_day_active, "is_working": self.is_working,
                 "start_time": self.start_time, "sessions": self.sessions}
         if clear:
             data = {"day_active": False, "is_working": False, "start_time": None, "sessions": []}
@@ -223,7 +240,10 @@ class TimeManager(QWidget):
                 self.is_day_active = data.get("day_active", False)
                 self.is_working = data.get("is_working", False)
                 self.start_time = data.get("start_time", None)
-                self.sessions = data.get("sessions", [])
+                self.sessions = [
+                    (normalize_activity(activity), start, end)
+                    for activity, start, end in data.get("sessions", [])
+                ]
         except FileNotFoundError:
             self.sessions = []
             self.is_day_active = False
@@ -232,18 +252,18 @@ class TimeManager(QWidget):
 
     def restore_last_state(self):
         if self.is_day_active:
-            self.day_button.setText("Закончить рабочий день")
-            self.label.setText("Рабочий день начался")
+            self.day_button.setText("End working day")
+            self.label.setText("Working day started")
             self.button.setVisible(True)
-        
+
         if self.is_working and self.start_time is not None:
-            self.button.setText("Закончить работу")
-            self.label.setText("Режим: Работа")
+            self.button.setText("End work")
+            self.label.setText("Mode: Work")
         elif self.is_day_active:
-            self.button.setText("Начать работу")
-            self.label.setText("Режим: Отдых")
-        
-        # Инициализируем компактный таймер
+            self.button.setText("Start work")
+            self.label.setText("Mode: Rest")
+
+        # Initialize compact timer
         if self.timer_start is not None and self.is_day_active:
             elapsed = int(time.time() - self.timer_start)
             hours = elapsed // 3600
@@ -255,10 +275,10 @@ class TimeManager(QWidget):
         flags = self.windowFlags()
         if flags & Qt.WindowStaysOnTopHint:
             self.setWindowFlags(flags & ~Qt.WindowStaysOnTopHint)
-            self.on_top_button.setText("Поверх всех окон")
+            self.on_top_button.setText("Always on top")
         else:
             self.setWindowFlags(flags | Qt.WindowStaysOnTopHint)
-            self.on_top_button.setText("Обычный режим")
+            self.on_top_button.setText("Normal mode")
         self.show()
 
     def show_statistics(self):
@@ -269,35 +289,39 @@ class TimeManager(QWidget):
         labels = []
         total_work = 0
         total_rest = 0
-        
+
         for i, (mode, start, end) in enumerate(self.sessions):
-            duration = (end - start) / 60  # Перевод в минуты
+            duration = (end - start) / 60  # Convert to minutes
             times.append(duration)
-            labels.append(str(i+1))  # Просто номер сессии без текста
-            if "Работа" in mode:
+            labels.append(str(i + 1))  # Session number only
+            if is_work_activity(mode):
                 total_work += duration
             else:
                 total_rest += duration
 
-        # Создаем график
+        # Build chart
         fig, ax = plt.subplots(figsize=(10, 6))
-        
-        # График сессий
-        bars = ax.bar(labels, times, color=["blue" if "Работа" in self.sessions[i][0] else "red" for i in range(len(labels))])
-        ax.set_ylabel("Длительность (мин)")
-        
-        # Добавляем настройку делений оси Y с шагом 5 минут
-        y_max = max(times) + 5  # Максимальное значение + небольшой отступ
-        ax.set_yticks(range(0, int(y_max), 5))  # Создаем деления с шагом 5
-        
-        # Добавляем значения над каждым столбцом
+
+        # Session bars
+        bars = ax.bar(
+            labels,
+            times,
+            color=["blue" if is_work_activity(self.sessions[i][0]) else "red" for i in range(len(labels))],
+        )
+        ax.set_ylabel("Duration (min)")
+
+        # Y-axis ticks every 5 minutes
+        y_max = max(times) + 5  # Max value plus small padding
+        ax.set_yticks(range(0, int(y_max), 5))
+
+        # Value labels above each bar
         for bar in bars:
             height = bar.get_height()
-            ax.text(bar.get_x() + bar.get_width()/2., height,
+            ax.text(bar.get_x() + bar.get_width() / 2.0, height,
                     f'{height:.1f}',
                     ha='center', va='bottom')
-        
-        ax.set_title("Статистика работы и отдыха")
+
+        ax.set_title("Work and rest statistics")
         ax.tick_params(axis='x', rotation=45)
 
         work_time = 0
@@ -305,21 +329,21 @@ class TimeManager(QWidget):
 
         for period in self.sessions:
             activity = period[0]
-            start_time = float(period[1])  # Преобразуем строку в число
-            end_time = float(period[2])    # Преобразуем строку в число
-            duration = end_time - start_time  # Время в секундах
-            
-            if activity == "Работа":
+            start_time = float(period[1])  # Convert string to number
+            end_time = float(period[2])
+            duration = end_time - start_time  # Time in seconds
+
+            if is_work_activity(activity):
                 work_time += duration
-            elif activity == "Отдых":
+            else:
                 rest_time += duration
-        
-        # Добавляем текст с общим временем внизу графика
+
+        # Total time summary below the chart
         work_time_formatted = str(datetime.timedelta(seconds=int(work_time)))
         rest_time_formatted = str(datetime.timedelta(seconds=int(rest_time)))
-        summary_text = f'Работа - {work_time_formatted}, Отдых - {rest_time_formatted}'
+        summary_text = f'Work - {work_time_formatted}, Rest - {rest_time_formatted}'
         plt.figtext(0.5, 0.0, summary_text, ha='center', fontsize=14)
-        
+
         plt.tight_layout()
         plt.show()
 
@@ -330,10 +354,10 @@ class TimeManager(QWidget):
             minutes = (elapsed % 3600) // 60
             time_text = f"{hours:02d}:{minutes:02d}"
             self.timer_label.setText(time_text)
-            # Обновляем время и в компактном режиме
+            # Update compact mode timer too
             self.compact_timer_label.setText(time_text)
         else:
-            # Если таймер не активен, показываем 00:00
+            # Show 00:00 when timer is inactive
             self.compact_timer_label.setText("00:00")
 
 if __name__ == "__main__":

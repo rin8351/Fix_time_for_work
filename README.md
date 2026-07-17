@@ -11,7 +11,7 @@
 
 ---
 
-## 📋 About the Project
+## About
 
 A simple and convenient time tracker created for **personal use** at work.
 
@@ -20,19 +20,19 @@ When working at a computer, your phone is often busy (video, music), and it's ea
 
 ---
 
-## ✨ Features
+## Features
 
-- 🌗 **Two modes**: Work (red) / Rest (green)
-- ⏱️ **Continuous time tracking** in each mode
+-  **Two modes**: Work (red) / Rest (green)
+- **Continuous time tracking** in each mode
 - 🟢/🔴 **Visual indication** — window color shows current status
-- 📌 **"Always on top"** — you always see whether you're working or resting
-- 🧩 **Compact mode** — minimalist window (timer + buttons)
-- 📊 **Daily statistics** — session chart with time details
-- 💾 **Auto-save** — all sessions are saved between launches
+- **"Always on top"** — you always see whether you're working or resting
+- **Compact mode** — minimalist window (timer + buttons)
+- **Daily statistics** — session chart with time details
+- **Auto-save** — all sessions are saved between launches
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <table>
 <tr>
@@ -61,7 +61,7 @@ When working at a computer, your phone is often busy (video, music), and it's ea
 
 ---
 
-## 📖 Usage
+## Usage
 
 1. **Launch the application** — the window opens in "Start of day" mode. The window will be gray.
 2. **Click "Start working day"** — Statistics and start work buttons appear. The timer hasn't started yet.
@@ -78,25 +78,6 @@ When working at a computer, your phone is often busy (video, music), and it's ea
 
 ## 🚀 Installation and Launch
 
-### Running from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/Fix_time_for_work.git
-cd Fix_time_for_work
-
-# Create a virtual environment
-python -m venv .venv
-
-# Activate the environment (Windows)
-.venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the application
-python main.py
-```
 
 ### Building an Executable (.exe)
 
@@ -111,41 +92,3 @@ pyinstaller main.spec
 ```
 
 The finished file will be located in the `dist/` folder.
-
-## 📁 Project Structure
-
-```
-Fix_time_for_work/
-│
-├── main.py              # Main application code
-├── main.spec            # PyInstaller configuration
-├── styles.qss           # Interface styles (QSS)
-├── sessions.json        # Session data (created automatically)
-├── requirements.txt     # Python dependencies
-│
-├── assets/              # Screenshots for README
-│   ├── compact_work.png
-│   ├── compact_rest.png
-│   ├── full_work.png
-│   ├── full_rest.png
-│   ├── stats.png
-│   └── Start_day.png
-│
-└── ico.ico              # Application icon
-```
-
-## 👤 Author
-
-Created for personal use and as a demonstration of PyQt5 skills.
-
-**Status**: Actively used ✅  
-**Testing**: On real daily work
-
----
-
-<div align="center">
-
-⭐ If the project was useful, give it a star!
-
-</div>
-
